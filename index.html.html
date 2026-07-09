@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IRO — Issues Reporting Outlet</title>
+<style>
+  :root{
+    --navy:#152238;
+    --navy-2:#1f3557;
+    --gold:#C99A3C;
+    --gold-soft:#EFDDB0;
+    --cream:#F6F3EC;
+    --paper:#FFFFFF;
+    --ink:#1E2430;
+    --muted:#6B7180;
+    --line:#E4E0D6;
+    --ok:#2F7A4D;
+    --warn:#B9711F;
+    --danger:#A6392E;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    line-height:1.45;
+  }
+  header{
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy-2) 100%);
+    color:#fff;
+    padding:28px 6vw 34px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute; right:-60px; top:-60px;
+    width:220px;height:220px;border-radius:50%;
+    background:radial-gradient(circle, rgba(201,154,60,0.25), transparent 70%);
+  }
+  .eyebrow{
+    text-transform:uppercase; letter-spacing:.14em; font-size:11.5px;
+    color:var(--gold-soft); font-weight:600; margin-bottom:8px;
+  }
+  h1{margin:0 0 6px; font-size:30px; letter-spacing:-0.01em;}
+  header p{margin:0; max-width:640px; color:#C9D2E3; font-size:14.5px;}
+
+  nav.tabs{
+    display:flex; gap:4px; margin:22px 6vw 0; border-bottom:1px solid var(--line);
+  }
+  nav.tabs button{
+    background:none; border:none; padding:12px 18px; font-size:14.5px;
+    font-weight:600; color:var(--muted); cursor:pointer; border-bottom:3px solid transparent;
+    margin-bottom:-1px;
+  }
+  nav.tabs button.active{ color:var(--navy); border-bottom:3px solid var(--gold); }
+
+  main{ padding:26px 6vw 60px; max-width:1100px; margin:0 auto; }
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:22px 24px; box-shadow:0 1px 2px rgba(20,20,30,0.04);
+  }
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px 20px; }
+  .field{ margin-bottom:4px; }
+  label{ display:block; font-size:12.5px; font-weight:600; color:var(--navy); margin-bottom:6px; }
+  .hint{ font-size:11.5px; color:var(--muted); margin-top:4px; }
+  input[type=text], input[type=tel], textarea, select{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:7px;
+    font-size:14px; font-family:inherit; background:#FCFBF8; color:var(--ink);
+  }
+  textarea{ resize:vertical; min-height:90px; }
+  input:focus, textarea:focus, select:focus{ outline:2px solid var(--gold); outline-offset:1px; border-color:var(--gold); }
+
+  .radio-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .radio-chip{
+    border:1px solid var(--line); border-radius:999px; padding:8px 16px; font-size:13.5px;
+    cursor:pointer; user-select:none; background:#FCFBF8;
+  }
+  .radio-chip input{ display:none; }
+  .radio-chip.checked{ background:var(--navy); color:#fff; border-color:var(--navy); }
+
+  .anon-toggle{ display:flex; align-items:center; gap:10px; font-size:13.5px; margin-top:6px; }
+  .switch{ position:relative; width:38px; height:20px; }
+  .switch input{ display:none; }
+  .slider{ position:absolute; inset:0; background:#D8D3C6; border-radius:20px; transition:.15s; cursor:pointer; }
+  .slider::before{ content:""; position:absolute; width:16px; height:16px; left:2px; top:2px; background:#fff; border-radius:50%; transition:.15s; }
+  .switch input:checked + .slider{ background:var(--gold); }
+  .switch input:checked + .slider::before{ transform:translateX(18px); }
+
+  .submit-btn{
+    background:var(--navy); color:#fff; border:none; padding:12px 26px; border-radius:8px;
+    font-size:14.5px; font-weight:600; cursor:pointer; margin-top:18px;
+  }
+  .submit-btn:hover{ background:var(--navy-2); }
+
+  .confirm{
+    display:none; margin-top:16px; padding:14px 16px; border-radius:8px;
+    background:#EAF5EE; border:1px solid #BFE0C9; color:var(--ok); font-size:13.5px; font-weight:600;
+  }
+
+  .toolbar{ display:flex; gap:12px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
+  .toolbar input, .toolbar select{ width:auto; min-width:150px; }
+  .toolbar .search{ flex:1; min-width:200px; }
+  .count-pill{ background:var(--navy); color:#fff; font-size:12px; padding:4px 11px; border-radius:999px; font-weight:600; }
+
+  .issue{
+    border:1px solid var(--line); border-radius:9px; padding:16px 18px; margin-bottom:12px; background:var(--paper);
+  }
+  .issue-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  .issue-id{ font-size:11px; color:var(--muted); font-family:monospace; }
+  .issue-desc{ font-size:14px; margin:8px 0 10px; color:var(--ink); }
+  .badges{ display:flex; gap:8px; flex-wrap:wrap; }
+  .badge{ font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; letter-spacing:.02em; }
+  .badge.cat{ background:#EFEAF7; color:#5B4B8A; }
+  .badge.role{ background:#EAF0F7; color:var(--navy); }
+  .badge.urg-Low{ background:#EAF5EE; color:var(--ok); }
+  .badge.urg-Medium{ background:#FBF0DE; color:var(--warn); }
+  .badge.urg-High{ background:#FBE7E4; color:var(--danger); }
+  .status-select{ font-size:12px; font-weight:700; padding:6px 10px; border-radius:6px; width:auto; }
+  .status-select.Pending{ background:#FBF0DE; color:var(--warn); border-color:#EAD2A0; }
+  .status-select.In-Review{ background:#EAF0F7; color:var(--navy); border-color:#C9D3E5; }
+  .status-select.Resolved{ background:#EAF5EE; color:var(--ok); border-color:#BFE0C9; }
+  .meta-row{ display:flex; gap:14px; font-size:11.5px; color:var(--muted); margin-top:6px; flex-wrap:wrap; }
+
+  .empty{ text-align:center; padding:50px 20px; color:var(--muted); }
+  .empty svg{ margin-bottom:10px; opacity:.5; }
+  footer{ text-align:center; font-size:11.5px; color:var(--muted); padding:18px; }
+  @media (max-width:680px){ .grid{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Adekunle Ajasin University · Community Relations</div>
+  <h1>IRO — Issues Reporting Outlet</h1>
+  <p>A shared channel for AAUA students and the Akungba, Iwaro, Etioro &amp; Ayegunle indigenes to raise, track, and resolve community issues together — respectfully, and without needing to know who to call first.</p>
+</header>
+
+<nav class="tabs">
+  <button class="active" data-tab="report">Report an Issue</button>
+  <button data-tab="manage">Track &amp; Manage Reports</button>
+</nav>
+
+<main>
+  <!-- REPORT PANEL -->
+  <section class="panel active" id="report">
+    <div class="card">
+      <div class="grid">
+        <div class="field" style="grid-column:1/-1;">
+          <label>I am reporting as</label>
+          <div class="radio-row" id="roleRow">
+            <label class="radio-chip checked"><input type="radio" name="role" value="Student" checked>Student</label>
+            <label class="radio-chip"><input type="radio" name="role" value="Indigene">Indigene</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Full name</label>
+          <input type="text" id="fname" placeholder="e.g. Adaeze Okonkwo">
+          <div class="anon-toggle">
+            <span class="switch"><input type="checkbox" id="anonToggle"><span class="slider"></span></span>
+            Report anonymously
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Phone / contact (optional)</label>
+          <input type="tel" id="fcontact" placeholder="e.g. 0803 xxx xxxx">
+        </div>
+
+        <div class="field">
+          <label>Issue category</label>
+          <select id="fcategory">
+            <option>Land / property dispute</option>
+            <option>Noise or public nuisance</option>
+            <option>Safety or security concern</option>
+            <option>Harassment or misconduct</option>
+            <option>Infrastructure (roads, light, water)</option>
+            <option>Market / trade disagreement</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Location / area</label>
+          <input type="text" id="flocation" placeholder="e.g. Behind Faculty of Science, Iwaro Road">
+        </div>
+
+        <div class="field" style="grid-column:1/-1;">
+          <label>Describe the issue</label>
+          <textarea id="fdesc" placeholder="What happened, when, and who was involved (if known)?"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Urgency</label>
+          <div class="radio-row" id="urgRow">
+            <label class="radio-chip checked"><input type="radio" name="urg" value="Low" checked>Low</label>
+            <label class="radio-chip"><input type="radio" name="urg" value="Medium">Medium</label>
+            <label class="radio-chip"><input type="radio" name="urg" value="High">High</label>
+          </div>
+        </div>
+      </div>
+
+      <button class="submit-btn" onclick="submitIssue()">Submit report</button>
+      <div class="confirm" id="confirmBox"></div>
+    </div>
+  </section>
+
+  <!-- MANAGE PANEL -->
+  <section class="panel" id="manage">
+    <div class="toolbar">
+      <input type="text" class="search" id="searchBox" placeholder="Search by keyword or location...">
+      <select id="filterStatus">
+        <option value="">All statuses</option>
+        <option>Pending</option>
+        <option>In Review</option>
+        <option>Resolved</option>
+      </select>
+      <select id="filterCategory">
+        <option value="">All categories</option>
+      </select>
+      <span class="count-pill" id="countPill">0 reports</span>
+    </div>
+    <div id="issueList"></div>
+  </section>
+</main>
+
+<footer>IRO prototype interface — in-memory demo data, no information leaves this page.</footer>
+
+<script>
+let issues = [];
+let counter = 1;
+
+// tabs
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab === 'manage') renderIssues();
+  });
+});
+
+// radio chip styling
+document.querySelectorAll('.radio-chip input').forEach(inp=>{
+  inp.addEventListener('change', ()=>{
+    inp.closest('.radio-row').querySelectorAll('.radio-chip').forEach(c=>c.classList.remove('checked'));
+    inp.closest('.radio-chip').classList.add('checked');
+  });
+});
+
+document.getElementById('anonToggle').addEventListener('change', (e)=>{
+  document.getElementById('fname').disabled = e.target.checked;
+  document.getElementById('fname').placeholder = e.target.checked ? 'Hidden (anonymous report)' : 'e.g. Adaeze Okonkwo';
+  if(e.target.checked) document.getElementById('fname').value='';
+});
+
+function submitIssue(){
+  const role = document.querySelector('input[name=role]:checked').value;
+  const urgency = document.querySelector('input[name=urg]:checked').value;
+  const anon = document.getElementById('anonToggle').checked;
+  const desc = document.getElementById('fdesc').value.trim();
+
+  if(!desc){
+    alert('Please describe the issue before submitting.');
+    return;
+  }
+
+  issues.unshift({
+    id: 'IRO-' + String(counter++).padStart(4,'0'),
+    role, urgency,
+    name: anon ? 'Anonymous' : (document.getElementById('fname').value.trim() || 'Anonymous'),
+    contact: document.getElementById('fcontact').value.trim(),
+    category: document.getElementById('fcategory').value,
+    location: document.getElementById('flocation').value.trim() || 'Not specified',
+    desc,
+    status: 'Pending',
+    date: new Date().toLocaleString()
+  });
+
+  const box = document.getElementById('confirmBox');
+  box.style.display = 'block';
+  box.textContent = 'Report submitted — reference number ' + issues[0].id + '. You can track it under "Track & Manage Reports".';
+
+  document.getElementById('fdesc').value='';
+  document.getElementById('flocation').value='';
+  document.getElementById('fcontact').value='';
+  document.getElementById('fname').value='';
+  updateCategoryFilter();
+}
+
+function updateCategoryFilter(){
+  const sel = document.getElementById('filterCategory');
+  const current = sel.value;
+  const cats = [...new Set(issues.map(i=>i.category))];
+  sel.innerHTML = '<option value="">All categories</option>' + cats.map(c=>`<option ${c===current?'selected':''}>${c}</option>`).join('');
+}
+
+function renderIssues(){
+  const list = document.getElementById('issueList');
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const st = document.getElementById('filterStatus').value;
+  const cat = document.getElementById('filterCategory').value;
+
+  const filtered = issues.filter(i=>{
+    const matchesQ = !q || i.desc.toLowerCase().includes(q) || i.location.toLowerCase().includes(q);
+    const matchesSt = !st || i.status === st;
+    const matchesCat = !cat || i.category === cat;
+    return matchesQ && matchesSt && matchesCat;
+  });
+
+  document.getElementById('countPill').textContent = filtered.length + ' report' + (filtered.length===1?'':'s');
+
+  if(filtered.length === 0){
+    list.innerHTML = `<div class="empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6B7180" stroke-width="1.5"><path d="M9 12h6m-6 4h6M5 20h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
+      <div>No reports match yet. Submit one from the "Report an Issue" tab.</div>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(i => `
+    <div class="issue">
+      <div class="issue-top">
+        <div>
+          <span class="issue-id">${i.id} · ${i.date}</span>
+          <div class="badges" style="margin-top:6px;">
+            <span class="badge role">${i.role}${i.name!=='Anonymous' ? ' · '+i.name : ' · Anonymous'}</span>
+            <span class="badge cat">${i.category}</span>
+            <span class="badge urg-${i.urgency}">${i.urgency} urgency</span>
+          </div>
+        </div>
+        <select class="status-select ${i.status.replace(' ','-')}" onchange="updateStatus('${i.id}', this.value)">
+          <option ${i.status==='Pending'?'selected':''}>Pending</option>
+          <option ${i.status==='In Review'?'selected':''}>In Review</option>
+          <option ${i.status==='Resolved'?'selected':''}>Resolved</option>
+        </select>
+      </div>
+      <div class="issue-desc">${i.desc}</div>
+      <div class="meta-row">
+        <span>📍 ${i.location}</span>
+        ${i.contact ? `<span>☎ ${i.contact}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateStatus(id, newStatus){
+  const issue = issues.find(i=>i.id===id);
+  issue.status = newStatus;
+  renderIssues();
+}
+
+document.getElementById('searchBox').addEventListener('input', renderIssues);
+document.getElementById('filterStatus').addEventListener('change', renderIssues);
+document.getElementById('filterCategory').addEventListener('change', renderIssues);
+
+// seed with two example reports so the manage view isn't empty on load
+issues.push({
+  id:'IRO-0001', role:'Indigene', name:'Anonymous', contact:'', category:'Land / property dispute',
+  location:'Boundary path near Etioro market', desc:'Ongoing disagreement over a footpath students use to cross indigene farmland.',
+  urgency:'Medium', status:'In Review', date:new Date().toLocaleString()
+});
+issues.push({
+  id:'IRO-0002', role:'Student', name:'Anonymous', contact:'', category:'Infrastructure (roads, light, water)',
+  location:'Ayegunle junction', desc:'Broken street light has made the junction unsafe for students walking back to hostels at night.',
+  urgency:'High', status:'Pending', date:new Date().toLocaleString()
+});
+counter = 3;
+updateCategoryFilter();
+</script>
+</body>
+</html>
